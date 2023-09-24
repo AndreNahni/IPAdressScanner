@@ -1,7 +1,6 @@
-import csv
-import os
+import os  # Future Use
 import ipaddress as ipadd  # Bibliothek, um IPs zu checken etc.
-import re
+import re  # Future Use
 
 import pandas as pd  # Bibliothek, um CSVs zu parsen
 
@@ -77,7 +76,8 @@ def enter_iprange():
 
 
 def enter_name():
-    pass
+    device = input("Bitte Geraetenamen eingeben")
+    return device
 
 
 def ping_devices():
@@ -95,7 +95,7 @@ def menu_input():
     while True:
         try:
             choice = int(input('\n'.join(x)))
-            if 0 < choice < 6:
+            if 0 < choice < 7:
                 return choice
             raise OutOfMenu
         except OutOfMenu:
