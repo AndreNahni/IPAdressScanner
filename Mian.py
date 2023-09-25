@@ -1,7 +1,7 @@
-import os  # Future Use
 import ipaddress as ipadd  # Bibliothek, um IPs zu checken etc.
-import re  # Future Use
-
+import os  # Future Use
+import re  # Bibliothek, um IP Adressen zu prüfen, auch wenn Geraetenamen enthalten sind
+import platform
 import pandas as pd  # Bibliothek, um CSVs zu parsen
 
 
@@ -18,15 +18,52 @@ Methode für den Filter um leere Felder der CSV zu filtern
 """
 
 
-def is_nan(element):
+def is_nan(element) -> bool:
     if element == "nan":
         return False
     return True
 
 
-def check_conf_file():
+def check_conf_file() -> bool:
     path = '\\Users\light\Documents\Schule\config.csv'
     return os.path.isfile(path)
+
+
+def validate_ping_parameters(parameters):
+    if platform.system() == "Windows":
+        valid_parameters = ["-t", "-n", "-l", "-f", "-w", "-S", "-I", "-v", "-R", "-4", "-6"]
+        numeric_params = ["-n", "-l", "-w", "-v"]
+    elif platform.system() == "Linux":
+        valid_parameters = ["-c", "-D", "-d", "-f", "-F", "-I", "-i", "-l", "-M", "-m", "-n", "-p", "-Q", "-q", "-R",
+                            "-s", "-S", "-T", "-t", "-U", "-u", "-v", "-V", "-w", "-W", "-x"]
+        numeric_params = ["-c", "-f", "-i", "-l", "-n", "-p", "-q", "-s", "-t", "-w", "-W"]
+    else:
+        valid_parameters = []
+        numeric_params = []
+        print("No apples for you :(")
+
+    i = 0
+    while i < len(parameters):
+        param = parameters[i]
+        if param in valid_parameters:
+            if param in numeric_params:
+                if i + 1 < len(parameters):
+                    next_param = parameters[i + 1]
+                    if next_param.isdigit():
+                        i += 1  # Iterator + 1, da aktuelles Zeichen eine Zahl ist
+                    else:
+                        print(f"{param} erwartet eine Zahl.")
+                        return False
+                else:
+                    print(f"{param} erwartet eine Zahl, aber keine Zahl angegeben.")
+                    return False
+        else:
+            print(f"{param} ist kein gültiger Parameter.")
+            return False
+
+        i += 1  # Iterator +1, da nächstes Zeichen geprüft werden muss.
+
+    return True
 
 
 def parse_parameters():
@@ -37,7 +74,7 @@ def parse_devices():
     path = '\\Users\light\Documents\Schule\ipliste.csv'
     if not os.path.isfile(path):
         print(f'Es wurde keine Liste mit Geraeten unter {path} gefunden!')
-        return
+        return None
     df = pd.read_csv(path)
     text_series_list = [df[col].astype(str) for col in df.columns]  # Parsed CSV in pandas DataFrame
     text_strings = [' '.join(text_series) for text_series in text_series_list]  # Parsed DataFrame in text String
@@ -47,11 +84,11 @@ def parse_devices():
         devices += list(x)  # Erstellen einer normalisierten Liste der IP-Adressen
     try:
         for element in devices:
-            if re.match(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", element):
+            if re.match(r'\b\d+\.\d+\.\d+\.\d+\b', element):
                 ipadd.ip_address(element)
-    except:
-        print(f'Die IP-Adresse {element} ist ungueltig!')
-        return
+    except Exception as e:
+        print(f'Die IP-Adresse {element} ist ungueltig!', str(e))
+        return None
     return devices  # Liste mit IPs und Hostnamen übergeben.
 
 
@@ -100,14 +137,27 @@ def enter_name():
     return [device]
 
 
-def ping_devices(toPing):
-
-    print("yee")
-
+def ping_devices(to_ping=None, parameter=None):
+    if to_ping is None:
+        print("Es wurde keine IP-Adressen uebergeben.")
+        return
+    while parameter is None:
+        choice = input("Bitte geben Sie die Parameter ein, um die Hilfe aufzurufen -? eingeben.\n"
+                       "Mehrere Parameter werden durch ein Leerzeichen getrennt.\n"
+                       "Zum Beispiel: -n 4 -w 1000")
+        parameter = choice.split()
+        if "-?" in parameter:
+            os.system("ping " + choice)
+            parameter = None
+        elif validate_ping_parameters(parameter):
+            os.system("cls")
+            print("Die Eingabe der Parameter wurde akzeptiert")
+        else:
+            parameter = None
     pass
 
 
-def menu_input():
+def menu_input() -> int:
     x = ["Geben Sie ein:",
          "\t1. Eingabe einer IP-Adresse",
          "\t2. Eingabe eines IP-Adressbereiches",
@@ -119,12 +169,15 @@ def menu_input():
         try:
             choice = int(input('\n'.join(x)))
             if 0 < choice < 7:
+                os.system("cls")
                 return choice
             raise OutOfMenu
         except OutOfMenu:
-            print("Es muss die Zahl einer Option gewaehlt werden.")
+            os.system("cls")
+            print("Es muss die Zahl einer Option gewaehlt werden.\n")
         except Exception as e:
-            print("Eingabe einer Zahl gefordert!", str(e))
+            os.system("cls")
+            print("Eingabe einer Zahl gefordert!\n", str(e))
 
 
 def main():
