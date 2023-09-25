@@ -24,14 +24,34 @@ def is_nan(element):
     return True
 
 
+def check_conf_file():
+    path = '\\Users\light\Documents\Schule\config.csv'
+    return os.path.isfile(path)
+
+
+def parse_parameters():
+    pass
+
+
 def parse_devices():
-    df = pd.read_csv('C:\\Users\light\Documents\Schule\ipliste.csv')
+    path = '\\Users\light\Documents\Schule\ipliste.csv'
+    if not os.path.isfile(path):
+        print(f'Es wurde keine Liste mit Geraeten unter {path} gefunden!')
+        return
+    df = pd.read_csv(path)
     text_series_list = [df[col].astype(str) for col in df.columns]  # Parsed CSV in pandas DataFrame
     text_strings = [' '.join(text_series) for text_series in text_series_list]  # Parsed DataFrame in text String
     devices = []
     for text_string in text_strings:
         x = filter(is_nan, text_string.split(" "))  # nan Elemente aus der IP-Liste löschen
         devices += list(x)  # Erstellen einer normalisierten Liste der IP-Adressen
+    try:
+        for element in devices:
+            if re.match(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", element):
+                ipadd.ip_address(element)
+    except:
+        print(f'Die IP-Adresse {element} ist ungueltig!')
+        return
     return devices  # Liste mit IPs und Hostnamen übergeben.
 
 
@@ -39,7 +59,7 @@ def enter_ip():
     while True:
         try:
             ip = ipadd.ip_address(input("Bitte geben Sie eine IP-Adresse ein (X.X.X.X): "))
-            return ip
+            return [ip]
         except Exception as e:
             print("Es wurde eine ungueltige IP eingegeben.", str(e))
 
@@ -77,10 +97,13 @@ def enter_iprange():
 
 def enter_name():
     device = input("Bitte Geraetenamen eingeben")
-    return device
+    return [device]
 
 
-def ping_devices():
+def ping_devices(toPing):
+
+    print("yee")
+
     pass
 
 
@@ -107,6 +130,10 @@ def menu_input():
 def main():
     running = True
     while running:
+        if check_conf_file():
+            ping_devices(parse_devices(), parse_parameters())
+            pass
+
         action = menu_input()
         match action:
             case 1:
