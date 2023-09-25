@@ -30,6 +30,8 @@ def check_conf_file() -> bool:
 
 
 def validate_ping_parameters(parameters):
+    pass
+    """
     if platform.system() == "Windows":
         valid_parameters = ["-t", "-n", "-l", "-f", "-w", "-S", "-I", "-v", "-R", "-4", "-6"]
         numeric_params = ["-n", "-l", "-w", "-v"]
@@ -55,7 +57,7 @@ def validate_ping_parameters(parameters):
                         print(f"{param} erwartet eine Zahl.")
                         return False
                 else:
-                    print(f"{param} erwartet eine Zahl, aber keine Zahl angegeben.")
+                    print(f"{param} erwartet eine Zahl.")
                     return False
         else:
             print(f"{param} ist kein gültiger Parameter.")
@@ -64,7 +66,7 @@ def validate_ping_parameters(parameters):
         i += 1  # Iterator +1, da nächstes Zeichen geprüft werden muss.
 
     return True
-
+"""
 
 def parse_parameters():
     pass
@@ -139,7 +141,7 @@ def enter_name():
 
 def ping_devices(to_ping=None, parameter=None):
     if to_ping is None:
-        print("Es wurde keine IP-Adressen uebergeben.")
+        print("Es wurde keine IP-Adresse uebergeben.")
         return
     while parameter is None:
         choice = input("Bitte geben Sie die Parameter ein, um die Hilfe aufzurufen -? eingeben.\n"
@@ -147,7 +149,7 @@ def ping_devices(to_ping=None, parameter=None):
                        "Zum Beispiel: -n 4 -w 1000")
         parameter = choice.split()
         if "-?" in parameter:
-            os.system("ping " + choice)
+            os.system("ping -?")
             parameter = None
         elif validate_ping_parameters(parameter):
             os.system("cls")
