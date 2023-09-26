@@ -30,64 +30,65 @@ def check_conf_file() -> bool:
 
 
 def validate_ping_parameters(parameters):
-    if platform.system() == "Windows":
-        valid_parameters = ["-t", "-a", "-n", "-l", "-f", "-i", "-v", "-r", "-s", "-j", "-k",
-                            "-w", "-R", "-S", "-c", "-p"]
-        numeric_params = ["-n", "-l", "-i", "-v", "-r", "-s", "-w"]
-        continuing_params = ["-j", "-k", "-S", "-c"]
+    valid_parameters = {
+        "Windows": ["-t", "-a", "-n", "-l", "-f", "-i", "-v", "-r", "-s", "-j", "-k", "-w", "-R", "-S", "-c", "-p"],
+        "Linux": ["-c", "-D", "-d", "-f", "-F", "-I", "-i", "-l", "-M", "-m", "-n", "-p", "-Q", "-q", "-R", "-s", "-S",
+                  "-T", "-t", "-U", "-u", "-v", "-V", "-w", "-W", "-x"],
+        "Default": []
+    }
 
-    elif platform.system() == "Linux":
-        valid_parameters = ["-c", "-D", "-d", "-f", "-F", "-I", "-i", "-l", "-M", "-m", "-n", "-p", "-Q", "-q", "-R",
-                            "-s", "-S", "-T", "-t", "-U", "-u", "-v", "-V", "-w", "-W", "-x"]
-        numeric_params = ["-c", "-f", "-i", "-l", "-n", "-p", "-q", "-s", "-t", "-w", "-W"]
-        continuing_params = []
-    else:
-        valid_parameters = []
-        numeric_params = []
-        continuing_params = []
-        print("No apples for you :(")
+    numeric_params = {
+        "Windows": ["-n", "-l", "-i", "-v", "-r", "-s", "-w"],
+        "Linux": ["-c", "-f", "-i", "-l", "-n", "-p", "-q", "-s", "-t", "-w", "-W"]
+    }
+
+    continuing_params = {
+        "Windows": ["-j", "-k", "-S", "-c"],
+        "Linux": []
+    }
+
+    system = platform.system()
+    if system not in valid_parameters:
+        print("Der Ping Befehl ist lediglich auf Window und Linux ausgelegt.")
+        return False
 
     i = 0
     while i < len(parameters):
         param = parameters[i]
-        if param in valid_parameters:
-            # Parameter mit nummerischen Attribut pruefen
-            if param in numeric_params:
-                if i + 1 < len(parameters):
-                    next_param = parameters[i + 1]
-                    if next_param.isdigit():
-                        i += 1  # Iterator + 1, da aktuelles Zeichen eine Zahl ist
-                    else:
-                        print(f"{param} erwartet eine Zahl.")
-                        return False
-                else:
-                    print(f"{param} erwartet eine Zahl.")
-                    return False
-            # Parameter mit Text-Attribut pruefen
-            if param in continuing_params:
-                if i + 1 < len(parameters):
-                    next_param = parameters[i + 1]
-                    if not next_param.startswith("-"):
-                        i += 1  # Iterator + 1, da aktuelles Zeichen eine erweiterung des Parameters ist
-                    else:
-                        print(f"{param} erwartet ein Argument.")
-                        return False
-                else:
-                    print(f"{param} erwartet ein Argument.")
-                    return False
-            # Parameter ohne Attribute pruefen
-            if param not in continuing_params and param not in numeric_params:
-                if i + 1 < len(parameters):
-                    next_param = parameters[i + 1]
-                    if not next_param.startswith("-"):
-                        print(f"{param} erwartet kein weiteres Argument")
-                        return False
-
-        else:
-            print(f"{param} ist kein gültiger Parameter.")
+        if param not in valid_parameters[system]:
+            print(f"{param} ist kein gueltiger Parameter.")
             return False
 
-        i += 1  # Iterator +1, da nächstes Zeichen geprüft werden muss.
+        if param in numeric_params[system]:
+            if i + 1 < len(parameters):
+                next_param = parameters[i + 1]
+                if not next_param.isdigit():
+                    print(f"{param} benötigt ein nummerisches Attribut")
+                    return False
+                i += 1  # Iterator auf das Attribut setzen.
+            else:
+                print(f"{param} benötigt ein nummerisches Attribut")
+                return False
+
+        elif param in continuing_params[system]:
+            if i + 1 < len(parameters):
+                next_param = parameters[i + 1]
+                if next_param.startswith("-"):
+                    print(f"{param} benötigt ein Argument")
+                    return False
+                i += 1  # Iterator auf das Attribut setzen.
+            else:
+                print(f"{param} benötigt ein Argument")
+                return False
+
+        else:
+            if i + 1 < len(parameters):
+                next_param = parameters[i + 1]
+                if not next_param.startswith("-"):
+                    print(f"{param} akzeptiert keine Attribute")
+                    return False
+
+        i += 1  # Iterator auf nächsten Parameter setzen.
 
     return True
 
@@ -163,36 +164,46 @@ def enter_name():
     return [device]
 
 
-def ping_devices(to_ping, parameter=None):
-    os.system("cls")
-    if to_ping is None:
-        print("Es wurde keine IP-Adresse uebergeben.")
-        return
-    while parameter is None:
-        choice = input("Bitte geben Sie die Parameter ein, um die Hilfe aufzurufen -? eingeben.\n"
-                       "Mehrere Parameter werden durch ein Leerzeichen getrennt.\n"
-                       "Zum Beispiel: -n 4 -w 1000")
-        parameter = choice.split()
-        if "-?" in parameter:
-            os.system("ping -?")
-            parameter = None
-        elif validate_ping_parameters(parameter):
-            os.system("cls")
-            print("Die Eingabe der Parameter wurde akzeptiert")
-        else:
-            parameter = None
-    else:
+def process_parameter(parameter=None):
+    if parameter is not None:
         if validate_ping_parameters(parameter):
             os.system("cls")
             print("Die Eingabe der Parameter wurde akzeptiert")
         else:
             desc = ["Die Config-Datei enthielt Fehler bei den oben genannten Parametern!",
                     "Bitte berichtigen Sie die Config, speichern diese und lesen diese neu ein",
-                    "Alternativ können Sie die IP-Liste einlesen lassen und die Parameter per Hand eingeben."]
+                    "Alternativ können Sie die Parameter nun per Hand Eingeben."]
             print("\n".join(desc))
-            return
-    pass
+            parameter = None
 
+    while parameter is None:
+        choice = input("Bitte geben Sie die Parameter ein. Um die Hilfe aufzurufen -? eingeben.\n"
+                       "Mehrere Parameter werden durch ein Leerzeichen getrennt.\n"
+                       "Sie koennen in das Menue durch die Eingabe \"e\" gelangen.\n"
+                       "Zum Beispiel: -n 4 -w 1000")
+        parameter = choice.split()
+        if "-?" in parameter:
+            os.system("ping -?")
+            parameter = None
+        elif "e" in parameter:
+            return
+        elif validate_ping_parameters(parameter):
+            os.system("cls")
+            print("Die Eingabe der Parameter wurde akzeptiert")
+        else:
+            parameter = None
+
+        return parameter
+
+
+def ping_devices(to_ping, parameter=None):
+    os.system("cls")
+    if to_ping is None:
+        print("Es wurde keine IP-Adresse uebergeben.")
+        return
+    if parameter is None:
+        return
+    print(True)
 
 def menu_input() -> int:
     x = ["Geben Sie ein:",
@@ -219,26 +230,25 @@ def menu_input() -> int:
 
 
 def main():
+    if check_conf_file():
+        ping_devices(parse_devices(), process_parameter(parse_parameters()))
+        pass
     running = True
     while running:
-        if check_conf_file():
-            ping_devices(parse_devices(), parse_parameters())
-            pass
-
         action = menu_input()
         match action:
             case 1:
-                ping_devices(enter_ip())
+                ping_devices(enter_ip(), process_parameter())
             case 2:
-                ping_devices(enter_iprange())
+                ping_devices(enter_iprange(), process_parameter())
             case 3:
-                ping_devices(enter_name())
+                ping_devices(enter_name(), process_parameter())
             case 4:
-                ping_devices(enter_ipnetwork())
+                ping_devices(enter_ipnetwork(), process_parameter())
             case 5:
-                ping_devices(parse_devices(), )
+                ping_devices(parse_devices(), process_parameter())
             case 6:
-                ping_devices(parse_devices(), parse_parameters())
+                ping_devices(parse_devices(), process_parameter(parse_parameters()))
             case 7:
                 running = False
 
