@@ -30,24 +30,28 @@ def check_conf_file() -> bool:
 
 
 def validate_ping_parameters(parameters):
-    pass
-    """
     if platform.system() == "Windows":
-        valid_parameters = ["-t", "-n", "-l", "-f", "-w", "-S", "-I", "-v", "-R", "-4", "-6"]
-        numeric_params = ["-n", "-l", "-w", "-v"]
+        valid_parameters = ["-t", "-a", "-n", "-l", "-f", "-i", "-v", "-r", "-s", "-j", "-k",
+                            "-w", "-R", "-S", "-c", "-p"]
+        numeric_params = ["-n", "-l", "-i", "-v", "-r", "-s", "-w"]
+        continuing_params = ["-j", "-k", "-S", "-c"]
+
     elif platform.system() == "Linux":
         valid_parameters = ["-c", "-D", "-d", "-f", "-F", "-I", "-i", "-l", "-M", "-m", "-n", "-p", "-Q", "-q", "-R",
                             "-s", "-S", "-T", "-t", "-U", "-u", "-v", "-V", "-w", "-W", "-x"]
         numeric_params = ["-c", "-f", "-i", "-l", "-n", "-p", "-q", "-s", "-t", "-w", "-W"]
+        continuing_params = []
     else:
         valid_parameters = []
         numeric_params = []
+        continuing_params = []
         print("No apples for you :(")
 
     i = 0
     while i < len(parameters):
         param = parameters[i]
         if param in valid_parameters:
+            # Parameter mit nummerischen Attribut pruefen
             if param in numeric_params:
                 if i + 1 < len(parameters):
                     next_param = parameters[i + 1]
@@ -59,6 +63,26 @@ def validate_ping_parameters(parameters):
                 else:
                     print(f"{param} erwartet eine Zahl.")
                     return False
+            # Parameter mit Text-Attribut pruefen
+            if param in continuing_params:
+                if i + 1 < len(parameters):
+                    next_param = parameters[i + 1]
+                    if not next_param.startswith("-"):
+                        i += 1  # Iterator + 1, da aktuelles Zeichen eine erweiterung des Parameters ist
+                    else:
+                        print(f"{param} erwartet ein Argument.")
+                        return False
+                else:
+                    print(f"{param} erwartet ein Argument.")
+                    return False
+            # Parameter ohne Attribute pruefen
+            if param not in continuing_params and param not in numeric_params:
+                if i + 1 < len(parameters):
+                    next_param = parameters[i + 1]
+                    if not next_param.startswith("-"):
+                        print(f"{param} erwartet kein weiteres Argument")
+                        return False
+
         else:
             print(f"{param} ist kein gültiger Parameter.")
             return False
@@ -66,7 +90,7 @@ def validate_ping_parameters(parameters):
         i += 1  # Iterator +1, da nächstes Zeichen geprüft werden muss.
 
     return True
-"""
+
 
 def parse_parameters():
     pass
@@ -139,7 +163,8 @@ def enter_name():
     return [device]
 
 
-def ping_devices(to_ping=None, parameter=None):
+def ping_devices(to_ping, parameter=None):
+    os.system("cls")
     if to_ping is None:
         print("Es wurde keine IP-Adresse uebergeben.")
         return
@@ -156,6 +181,16 @@ def ping_devices(to_ping=None, parameter=None):
             print("Die Eingabe der Parameter wurde akzeptiert")
         else:
             parameter = None
+    else:
+        if validate_ping_parameters(parameter):
+            os.system("cls")
+            print("Die Eingabe der Parameter wurde akzeptiert")
+        else:
+            desc = ["Die Config-Datei enthielt Fehler bei den oben genannten Parametern!",
+                    "Bitte berichtigen Sie die Config, speichern diese und lesen diese neu ein",
+                    "Alternativ können Sie die IP-Liste einlesen lassen und die Parameter per Hand eingeben."]
+            print("\n".join(desc))
+            return
     pass
 
 
@@ -166,7 +201,8 @@ def menu_input() -> int:
          "\t3. Eingabe eines Rechnernames",
          "\t4. Eingabe eines Netzwerks",
          "\t5. Einlesen einer IP-Liste",
-         "\t6. Programm beenden."]
+         "\t6. Einlesen einer Config",
+         "\t7. Programm beenden."]
     while True:
         try:
             choice = int(input('\n'.join(x)))
@@ -200,8 +236,10 @@ def main():
             case 4:
                 ping_devices(enter_ipnetwork())
             case 5:
-                ping_devices(parse_devices())
+                ping_devices(parse_devices(), )
             case 6:
+                ping_devices(parse_devices(), parse_parameters())
+            case 7:
                 running = False
 
 
