@@ -4,11 +4,11 @@ Disclaimer: Diese Klasse sollte nie als Teil eines Skriptes, oder Programms impo
 Eine Pruefung durch if __name__ == __main__ findet nicht statt.
 !!!
 """
-import pandas as pd     #Package fuer das Parsen von CSV Dateien
-import ipaddress        #Package fur das Handling von IP Adressen
-import ping3            #Package fuer das Ausfuehren der Pings
-import time             #Wird genutzt, um Wartezustaende im Programm auszuloesen
-import os               #Package um Systeminformationen, wie Dateipfade zu pruefen 
+import pandas as pd                     #Package fuer das Parsen von CSV Dateien
+import ipaddress                        #Package fur das Handling von IP Adressen
+import ping3                            #Package fuer das Ausfuehren der Pings
+import time                             #Wird genutzt, um Wartezustaende im Programm auszuloesen
+import os                               #Package um Systeminformationen, wie Dateipfade zu pruefen 
 
 
 #Erweitert die Klasse Exception um die Subklasse FChoice > Spezifischeres Exception Handling siehe menu()
@@ -55,6 +55,8 @@ def parseParamFile():
     #df ist eine Objektvariable der Klasse pandas. Hier wird die csv Datei in Zeilen und Spalten dargestellt.
     #Delimiter ist das Datentrennende Symbol in der CSV. Die 1. Spalte (Erster Wert in jeder Zeile) erhaelt den Bezeichner Eigenschaft und die 2. Wert.
     df = pd.read_csv(path, delimiter=";", header=None, names=["Eigenschaft", "Wert"])
+
+    
     values = [] #Initalisieren der Liste für die Parameter
 
     #Die for-Schleife itterriert durch die CSV. Der Inhalt wird durch iterrows() anhand von Indexen angegeben jeder Index beinhaltet die Daten einer Zeile
@@ -68,7 +70,9 @@ def parseParamFile():
             if row["Eigenschaft"] == "Modus (IPAdresse [1], IPRange [2], Rechnername[3])" and not (1 <= int(row["Wert"]) <= 3):   
                 
                 #Befuellen der Liste mit None Werten, um spaetere Errors bei der Verarbeitung der Liste zu vermeiden
-                values.append(None for x in range(1,4))
+                values.append(None)
+                values.append(None)
+                values.append(None)
                 raise ModusError
 
             #Wenn der Modus 3(Geraetenamen) ausgewaehlt wurde und die Zeile IP1 erreicht ist
@@ -132,7 +136,9 @@ def enterArgs():
                   "Bei einem Timeout von 4000 und 2 Scans wird zwischen den 1. und 2. Scans 4 Sekunden gewartet\n\n")   #Anweisung zum Handling ausgeben
             values.append(int(input("Gebe den Timeout zwischen den Scans in ms an: ")))                                 #Eingabe als Integer
             values.append(int(input("Gebe die Anzahl der Scans ein: ")))                                                #Eingabe als Integer
-            values.append(None for x in range(1,4))                                                                     #Fuellen der Liste mit None
+            values.append(None)                                                                                         #Fuellen der Liste mit None
+            values.append(None)
+            values.append(None)
             print()                                                                                                     #Leerzeile
             return values                                                                                               #Rueckgabe der Parameter
 
@@ -245,11 +251,10 @@ def ping_devices(device_list, timeout=0, iteration=1):
                 # Pinge das Gerät und speichere das Ergebnis in "result" zwischen
                 result = ping3.ping(device, unit="ms", timeout=0.5)
 
-                #Spezifizierung des Rueckgabewerts anhand des Variablen Werts von Result und dessen Speicherung im Dictionary
+                #Spezifizierung des Rueckgabewerts anhand des Variablen Werts von Result und dessen Speicherung im Dictionary.
                 if result == None:
                     result = "Host ist nicht erreichbar (Request Timed out)"
                     results[device] = result
-
                 elif result == False:
                     result = "Host ist nicht erreichbar (Host unknown, cannot resolve host)"
                     results[device] = result
@@ -257,13 +262,13 @@ def ping_devices(device_list, timeout=0, iteration=1):
                     result = f"{result}ms"
                     results[device] = result
 
-                #Echtzeit Ausgabe der Ping Ergebnisse
+                #Echtzeit Ausgabe der Ping Ergebnisse    
                 print(f"{device}: {result}")
 
             except Exception as e:
                 # Falls ein Fehler auftritt, speichere eine entsprechende Meldung im Dictionary
                 results[device] = f"Fehler beim Pingen: {str(e)}"
-        
+                print(f"{device}: {result}")
         #Warte die angegebene Zeit vor dem nächsten Scan
         time.sleep(timeout)
         #Schleifendurchlauf +1
@@ -275,6 +280,8 @@ def ping_devices(device_list, timeout=0, iteration=1):
 #Pruefe ob die Parameterdatei vorhanden ist
 if checkParamFile():
     args = parseParamFile()         #Parameter in args als Liste Speichern, oder bei fehlern args = None         
+    print(args)
+
 else:   
     args = None                     #Falls keine Parameterliste vorhanden ist wird args ohne Wert initialisiert
 
@@ -306,4 +313,5 @@ elif choice == 3:
 elif choice == 4:
     print("Das Programm wird beendet.")             #Ausgabe dass das Programm beendet wird
 else:
-    print("Unerwarteter Fehler")                    #Falls choice einen Wert, welcher nicht zwischen inklusive 1 und 4 ist, besitzt wird ein Fehler ausgegeben
+    print("Unerwarteter Fehler")                    #Falls choice einen Wert, welcher nicht zwischen inklusive 1 und 4 ist, besitzt wird ein Fehler ausgegeben.
+
