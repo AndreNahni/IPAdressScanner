@@ -220,7 +220,7 @@ def eingabeIPRange(ip=None, ip2=None):
         #Diese Exception wird ausgeloest, wenn die angegebenen IP Adressen gleich sind, oder die Startadresse ueberhalb der endadresse liegt
         except StepFault:
             print("\nDie erste IP-Adresse muss unter der zweiten IP-Adresse liegen!\n")                     #Ausgabe Fehlerbeschreibung
-            ip, ip2 = None                                                                                  #Zuruecksetzen der IP Adressen
+            ip, ip2 = None, None                                                                                  #Zuruecksetzen der IP Adressen
         
         #Diese Exception wird ausgeloest, wenn die angegebene IP ungueltig ist.
         except Exception as e:
@@ -268,8 +268,7 @@ def ping_devices(device_list, timeout=0, iteration=1):
             except Exception as e:
                 # Falls ein Fehler auftritt, speichere eine entsprechende Meldung im Dictionary
                 results[device] = f"Fehler beim Pingen: {str(e)}"
-                print(f"{device}: {result}")
-        #Warte die angegebene Zeit vor dem nächsten Scan
+            #Warte die angegebene Zeit vor dem nächsten Scan
         time.sleep(timeout)
         #Schleifendurchlauf +1
         i += 1
@@ -280,7 +279,6 @@ def ping_devices(device_list, timeout=0, iteration=1):
 #Pruefe ob die Parameterdatei vorhanden ist
 if checkParamFile():
     args = parseParamFile()         #Parameter in args als Liste Speichern, oder bei fehlern args = None         
-    print(args)
 
 else:   
     args = None                     #Falls keine Parameterliste vorhanden ist wird args ohne Wert initialisiert
@@ -314,4 +312,3 @@ elif choice == 4:
     print("Das Programm wird beendet.")             #Ausgabe dass das Programm beendet wird
 else:
     print("Unerwarteter Fehler")                    #Falls choice einen Wert, welcher nicht zwischen inklusive 1 und 4 ist, besitzt wird ein Fehler ausgegeben.
-
