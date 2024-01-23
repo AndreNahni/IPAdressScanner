@@ -30,7 +30,7 @@ class ModusError(Exception):
 def checkIP(test_val):
     try:
         #Versuche test_val in ein Objekt der Klasse ipaddress zu casten, wenn moeglich dann -> True
-        ipaddress.IPv4Address(test_val)
+        ipaddress.IPv4Address(str(test_val))
         return True
 
     except:
@@ -225,7 +225,7 @@ def eingabeIPRange(ip=None, ip2=None):
         #Diese Exception wird ausgeloest, wenn die angegebene IP ungueltig ist.
         except Exception as e:
             print("\nBitte geben Sie gueltige IP-Adressen ein!", str(e) + "\n")                             #Ausgabe Fehlerbeschreibung
-
+            ip, ip2 = None, None
 
 #Funktion fuer die Eingabe eines Rechnernamens durch den User.
 def eingabeRechnername():
