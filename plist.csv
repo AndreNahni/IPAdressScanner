@@ -1,0 +1,5 @@
+Timeout in Milisekunden;10000
+Iterationen;2
+Modus (IPAdresse [1], IPRange [2], Rechnername[3]);2
+IP1;127.0.0.1
+IP2;127.0.0.10
